@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Edge - Betting Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        #queryInput {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #queryInput:focus {
+            border-color: #667eea;
+        }
+
+        #searchBtn {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #searchBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        #searchBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .examples {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .example-query {
+            display: inline-block;
+            margin-right: 15px;
+            padding: 5px 12px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .example-query:hover {
+            background: #e0e0e0;
+        }
+
+        #loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #results {
+            display: none;
+        }
+
+        .intent-info {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .intent-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .teams {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .vs {
+            color: #999;
+            font-weight: 400;
+            margin: 0 15px;
+        }
+
+        .game-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .odds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .bookmaker-odds {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .bookmaker-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .odds-value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .error-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Sports Edge</h1>
+            <p class="subtitle">AI-Powered Sports Betting Analytics</p>
+        </header>
+
+        <div class="search-box">
+            <div class="search-input-wrapper">
+                <input
+                    type="text"
+                    id="queryInput"
+                    placeholder="Ask anything... e.g., 'Shelton vs Alcaraz', 'NBA games today', 'show me Lakers odds'"
+                    autocomplete="off"
+                />
+                <button id="searchBtn">Search</button>
+            </div>
+            <div class="examples">
+                <strong>Try:</strong>
+                <span class="example-query" data-query="Shelton vs Alcaraz">Shelton vs Alcaraz</span>
+                <span class="example-query" data-query="NBA games today">NBA games today</span>
+                <span class="example-query" data-query="show me tennis matches">Tennis matches</span>
+            </div>
+        </div>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Searching for games...</p>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        const queryInput = document.getElementById('queryInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        // Handle search
+        async function search() {
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            // Show loading
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            searchBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/api/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch results');
+                }
+
+                displayResults(data);
+            } catch (error) {
+                displayError(error.message);
+            } finally {
+                loading.style.display = 'none';
+                searchBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            const { intent, results: games, executionTimeMs } = data;
+
+            let html = `
+                <div class="intent-info">
+                    <span class="intent-badge">${intent.sport || 'Unknown'}</span>
+                    <span class="intent-badge">${intent.queryType}</span>
+                    <span class="intent-badge">Confidence: ${(intent.confidence * 100).toFixed(0)}%</span>
+                    <span style="float: right; color: #999; font-size: 14px;">⚡ ${executionTimeMs}ms</span>
+                </div>
+            `;
+
+            if (games.length === 0) {
+                html += '<div class="error-message">No games found for your query.</div>';
+            } else {
+                games.forEach(game => {
+                    const date = new Date(game.commenceTime).toLocaleString();
+                    html += `
+                        <div class="game-card">
+                            <div class="game-header">
+                                <div class="teams">
+                                    ${game.homeTeam} <span class="vs">vs</span> ${game.awayTeam}
+                                </div>
+                                <div class="game-info">
+                                    <div>${game.sportTitle}</div>
+                                    <div>${date}</div>
+                                </div>
+                            </div>
+                    `;
+
+                    if (game.odds && game.odds.bookmakers) {
+                        html += '<div class="odds-grid">';
+                        game.odds.bookmakers.forEach(bookmaker => {
+                            const h2hMarket = bookmaker.markets.find(m => m.marketType === 'h2h');
+                            if (h2hMarket && h2hMarket.outcomes) {
+                                html += `
+                                    <div class="bookmaker-odds">
+                                        <div class="bookmaker-name">${bookmaker.title}</div>
+                                `;
+                                h2hMarket.outcomes.forEach(outcome => {
+                                    html += `<div>${outcome.name}: <span class="odds-value">${outcome.price}</span></div>`;
+                                });
+                                html += '</div>';
+                            }
+                        });
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+                });
+            }
+
+            results.innerHTML = html;
+            results.style.display = 'block';
+        }
+
+        function displayError(message) {
+            results.innerHTML = `<div class="error-message">❌ ${message}</div>`;
+            results.style.display = 'block';
+        }
+
+        // Event listeners
+        searchBtn.addEventListener('click', search);
+        queryInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') search();
+        });
+
+        document.querySelectorAll('.example-query').forEach(el => {
+            el.addEventListener('click', () => {
+                queryInput.value = el.dataset.query;
+                search();
+            });
+        });
+    </script>
+</body>
+</html>
