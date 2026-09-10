@@ -3,6 +3,13 @@ cli/node_modules/
 mcp-server-basketball/node_modules/
 .env
 
+# Compiled output - should never be committed
+dist/
+*/dist/
+backend/dist/
+mcp-server/dist/
+mcp-server-basketball/dist/
+
 # MCP Settings (contains local paths and API keys)
 .claude/mcp-settings.json
 
