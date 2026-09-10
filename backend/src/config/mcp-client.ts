@@ -13,8 +13,8 @@ export class MCPClient {
 
   constructor() {
     // Resolve MCP server path relative to the project root
-    const mcpServerRelativePath = process.env.MCP_SERVER_PATH || '../mcp-server/dist/index.js';
-    this.mcpServerPath = path.resolve(__dirname, '../../../mcp-server/dist/index.js');
+    const mcpServerRelativePath = process.env.MCP_SERVER_PATH || '../mcp-servers/odds-api/dist/index.js';
+    this.mcpServerPath = path.resolve(__dirname, '../../../mcp-servers/odds-api/dist/index.js');
     console.log('MCP Server Path:', this.mcpServerPath);
   }
 
@@ -52,7 +52,9 @@ export class MCPClient {
             const response = JSON.parse(responseLine);
             if (response.result && response.result.content) {
               const content = response.result.content[0].text;
-              resolve(JSON.parse(content));
+              const parsed = JSON.parse(content);
+              console.log('✓ MCP Response parsed successfully');
+              resolve(parsed);
             } else {
               reject(new Error('Invalid MCP response format'));
             }
@@ -60,6 +62,7 @@ export class MCPClient {
             reject(new Error('No result in MCP response'));
           }
         } catch (error) {
+          console.error('MCP parse error. stdout:', stdout.substring(0, 200));
           reject(new Error(`Failed to parse MCP response: ${error}`));
         }
       });

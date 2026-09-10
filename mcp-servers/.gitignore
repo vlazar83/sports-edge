@@ -1,0 +1,7 @@
+basketball-api/node_modules/
+odds-api/node_modules/
+basketball-api/dist/
+odds-api/dist/
+.env
+*.log
+.DS_Store

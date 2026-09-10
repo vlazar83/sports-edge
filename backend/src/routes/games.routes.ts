@@ -1,140 +1,136 @@
 import { Router, Request, Response } from 'express';
-import db from '../config/database';
+import mcpClient from '../config/mcp-client';
 
 const router = Router();
 
 /**
- * GET /api/games
- * List games with optional filters
+ * POST /api/games
+ * Get games for a specific league and date
  */
-router.get('/', async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
-    const { sport, status, limit = '20', offset = '0' } = req.query;
+    const { sport, mcp, league, date } = req.body;
 
-    let query = `
-      SELECT
-        g.id, g.event_id, g.commence_time, g.status,
-        s.sport_key, s.title as sport_title,
-        hp.name as home_team, ap.name as away_team,
-        g.home_score, g.away_score,
-        COUNT(DISTINCT os.bookmaker_id) as bookmaker_count
-      FROM games g
-      JOIN sports s ON g.sport_id = s.id
-      JOIN participants hp ON g.home_participant_id = hp.id
-      JOIN participants ap ON g.away_participant_id = ap.id
-      LEFT JOIN odds_snapshots os ON g.id = os.game_id
-      WHERE 1=1
-    `;
-
-    const params: any[] = [];
-    let paramIndex = 1;
-
-    if (sport) {
-      query += ` AND s.sport_key LIKE $${paramIndex}`;
-      params.push(`%${sport}%`);
-      paramIndex++;
+    if (!sport || !league || !date) {
+      return res.status(400).json({
+        error: 'sport, league, and date parameters are required'
+      });
     }
 
-    if (status) {
-      query += ` AND g.status = $${paramIndex}`;
-      params.push(status);
-      paramIndex++;
+    console.log(`🎮 Fetching games - Sport: ${sport}, League: ${league}, Date: ${date}, MCP: ${mcp || 'odds-api'}`);
+
+    const startTime = Date.now();
+
+    // Parse date range
+    const targetDate = new Date(date);
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Fetch games from MCP
+    let gamesResponse;
+
+    if (mcp === 'basketball-api' || mcp === 'football-api') {
+      // International API (not implemented yet)
+      return res.status(501).json({
+        error: 'International API not yet implemented',
+        message: 'Please use The Odds API for now'
+      });
+    } else {
+      // The Odds API
+      gamesResponse = await mcpClient.getEvents(league);
     }
 
-    query += `
-      GROUP BY g.id, s.sport_key, s.title, hp.name, ap.name
-      ORDER BY g.commence_time DESC
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `;
+    const executionTime = Date.now() - startTime;
 
-    params.push(parseInt(limit as string), parseInt(offset as string));
+    // Extract and filter games
+    let games = gamesResponse.games || gamesResponse || [];
 
-    const result = await db.query(query, params);
+    // Filter by date range
+    games = games.filter((game: any) => {
+      const gameTime = new Date(game.commence_time);
+      return gameTime >= startOfDay && gameTime <= endOfDay;
+    });
+
+    // If no games on selected date, show next upcoming games
+    let fallbackUsed = false;
+    if (games.length === 0) {
+      console.log(`📅 No games on ${date}, showing next 10 upcoming games...`);
+      const allGames = gamesResponse.games || gamesResponse || [];
+      const futureGames = allGames.filter((game: any) => {
+        const gameTime = new Date(game.commence_time);
+        return gameTime >= startOfDay;
+      });
+
+      // Sort by date and take first 10
+      games = futureGames.sort((a: any, b: any) => {
+        return new Date(a.commence_time).getTime() - new Date(b.commence_time).getTime();
+      }).slice(0, 10);
+
+      fallbackUsed = true;
+    }
+
+    console.log(`✓ Found ${games.length} games for ${league}${fallbackUsed ? ' (upcoming)' : ` on ${date}`}`);
+
+    // Format response
+    const formattedGames = games.map((game: any) => ({
+      eventId: game.id,
+      sport: sport,
+      sportTitle: game.sport_title || sport,
+      homeTeam: game.home_team,
+      awayTeam: game.away_team,
+      commenceTime: game.commence_time,
+      status: game.completed ? 'completed' : 'scheduled',
+      scores: game.scores ? {
+        home: game.scores[0]?.score,
+        away: game.scores[1]?.score
+      } : undefined
+    }));
 
     res.json({
-      games: result.rows,
-      count: result.rows.length
+      sport,
+      league,
+      date,
+      mcp: mcp || 'odds-api',
+      games: formattedGames,
+      executionTimeMs: executionTime,
+      fallbackUsed: fallbackUsed,
+      message: fallbackUsed ? `No games on ${date}. Showing next upcoming games.` : undefined
     });
 
   } catch (error: any) {
-    console.error('Error fetching games:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Games error:', error);
+    res.status(500).json({
+      error: 'Failed to fetch games',
+      message: error.message
+    });
   }
 });
 
 /**
- * GET /api/games/:gameId
- * Get specific game with odds
+ * GET /api/games
+ * Legacy endpoint - list all games with filters
  */
-router.get('/:gameId', async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const { gameId } = req.params;
+    const { sport, date } = req.query;
 
-    const gameResult = await db.query(`
-      SELECT
-        g.id, g.event_id, g.commence_time, g.status,
-        s.sport_key, s.title as sport_title,
-        hp.name as home_team, ap.name as away_team,
-        g.home_score, g.away_score
-      FROM games g
-      JOIN sports s ON g.sport_id = s.id
-      JOIN participants hp ON g.home_participant_id = hp.id
-      JOIN participants ap ON g.away_participant_id = ap.id
-      WHERE g.id = $1
-    `, [gameId]);
+    console.log(`🎮 Fetching games - Sport: ${sport}, Date: ${date}`);
 
-    if (gameResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Game not found' });
-    }
-
-    const game = gameResult.rows[0];
-
-    // Get latest odds
-    const oddsResult = await db.query(`
-      SELECT DISTINCT ON (os.bookmaker_id, os.market_type)
-        b.bookmaker_key, b.title as bookmaker_title,
-        os.market_type, os.snapshot_time,
-        json_agg(json_build_object(
-          'outcome_name', oo.outcome_name,
-          'price', oo.price,
-          'point', oo.point
-        )) as outcomes
-      FROM odds_snapshots os
-      JOIN bookmakers b ON os.bookmaker_id = b.id
-      JOIN odds_outcomes oo ON os.id = oo.snapshot_id
-      WHERE os.game_id = $1
-      GROUP BY b.bookmaker_key, b.title, os.market_type, os.snapshot_time, os.bookmaker_id
-      ORDER BY os.bookmaker_id, os.market_type, os.snapshot_time DESC
-    `, [gameId]);
-
-    game.odds = oddsResult.rows;
-
-    res.json(game);
+    // For now, return empty array - this is legacy endpoint
+    res.json({
+      games: [],
+      message: 'Please use POST /api/games with league and date'
+    });
 
   } catch (error: any) {
-    console.error('Error fetching game:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-/**
- * GET /api/sports
- * List all available sports
- */
-router.get('/sports', async (req: Request, res: Response) => {
-  try {
-    const result = await db.query(`
-      SELECT id, sport_key, title, group_name, active
-      FROM sports
-      WHERE active = true
-      ORDER BY title
-    `);
-
-    res.json({ sports: result.rows });
-
-  } catch (error: any) {
-    console.error('Error fetching sports:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Games error:', error);
+    res.status(500).json({
+      error: 'Failed to fetch games',
+      message: error.message
+    });
   }
 });
 

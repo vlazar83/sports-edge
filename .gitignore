@@ -7,13 +7,12 @@ mcp-server-basketball/node_modules/
 dist/
 */dist/
 backend/dist/
-mcp-server/dist/
-mcp-server-basketball/dist/
+mcp-servers/*/dist/
 
 # MCP Settings (contains local paths and API keys)
 .claude/mcp-settings.json
 
 # Environment files with API keys
-mcp-server/.env
-mcp-server-basketball/.env
+mcp-servers/.env
+mcp-servers/*/.env
 backend/.env

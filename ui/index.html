@@ -19,14 +19,14 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
         header {
             text-align: center;
             color: white;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         h1 {
@@ -39,86 +39,145 @@
             opacity: 0.9;
         }
 
-        .search-box {
+        /* Tab Navigation */
+        .sport-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .sport-tab {
+            flex: 1;
+            padding: 15px;
+            background: white;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0.7;
+        }
+
+        .sport-tab.active {
+            opacity: 1;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+
+        .sport-tab:hover {
+            opacity: 0.9;
+        }
+
+        /* Main Content Card */
+        .content-card {
             background: white;
             border-radius: 12px;
             padding: 30px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
         }
 
-        .search-input-wrapper {
+        /* MCP Source Tabs */
+        .mcp-tabs {
             display: flex;
             gap: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
         }
 
-        #queryInput {
-            flex: 1;
-            padding: 15px 20px;
-            font-size: 16px;
+        .mcp-tab {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mcp-tab.active {
+            background: white;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .mcp-tab:hover {
+            background: #e9ecef;
+        }
+
+        /* Filters */
+        .filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 12px;
             border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            border-radius: 6px;
+            font-size: 14px;
             outline: none;
             transition: border-color 0.3s;
         }
 
-        #queryInput:focus {
+        .filter-group select:focus,
+        .filter-group input:focus {
             border-color: #667eea;
         }
 
-        #searchBtn {
-            padding: 15px 40px;
+        #loadGamesBtn {
+            align-self: flex-end;
+            padding: 12px 30px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        #searchBtn:hover {
+        #loadGamesBtn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
 
-        #searchBtn:disabled {
+        #loadGamesBtn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            transform: none;
         }
 
-        .examples {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #666;
-        }
-
-        .example-query {
-            display: inline-block;
-            margin-right: 15px;
-            padding: 5px 12px;
-            background: #f5f5f5;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .example-query:hover {
-            background: #e0e0e0;
-        }
-
+        /* Loading */
         #loading {
             display: none;
             text-align: center;
             padding: 40px;
-            color: white;
+            color: #666;
         }
 
         .spinner {
-            border: 4px solid rgba(255,255,255,0.3);
+            border: 4px solid #f3f3f3;
             border-radius: 50%;
-            border-top: 4px solid white;
+            border-top: 4px solid #667eea;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
@@ -130,38 +189,12 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Results */
         #results {
             display: none;
         }
 
-        .intent-info {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .intent-badge {
-            display: inline-block;
-            padding: 6px 12px;
-            background: #667eea;
-            color: white;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-right: 10px;
-        }
-
-        .game-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .game-header {
+        .results-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -170,8 +203,47 @@
             border-bottom: 2px solid #f0f0f0;
         }
 
+        .results-count {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .data-source-badge {
+            padding: 6px 14px;
+            background: #667eea;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Game Cards */
+        .game-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
         .teams {
-            font-size: 1.5em;
+            font-size: 1.3em;
             font-weight: 700;
             color: #333;
         }
@@ -179,37 +251,26 @@
         .vs {
             color: #999;
             font-weight: 400;
-            margin: 0 15px;
+            margin: 0 10px;
         }
 
-        .game-info {
+        .game-time {
             font-size: 14px;
             color: #666;
         }
 
-        .odds-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+        .game-details {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
         }
 
-        .bookmaker-odds {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .bookmaker-name {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .odds-value {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: #667eea;
+        .game-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .error-message {
@@ -219,153 +280,381 @@
             border-radius: 8px;
             margin-bottom: 20px;
         }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🎯 Sports Edge</h1>
-            <p class="subtitle">AI-Powered Sports Betting Analytics</p>
+            <p class="subtitle">Sports Betting Analytics Platform</p>
         </header>
 
-        <div class="search-box">
-            <div class="search-input-wrapper">
-                <input
-                    type="text"
-                    id="queryInput"
-                    placeholder="Ask anything... e.g., 'Shelton vs Alcaraz', 'NBA games today', 'show me Lakers odds'"
-                    autocomplete="off"
-                />
-                <button id="searchBtn">Search</button>
-            </div>
-            <div class="examples">
-                <strong>Try:</strong>
-                <span class="example-query" data-query="Shelton vs Alcaraz">Shelton vs Alcaraz</span>
-                <span class="example-query" data-query="NBA games today">NBA games today</span>
-                <span class="example-query" data-query="show me tennis matches">Tennis matches</span>
-            </div>
+        <!-- Sport Tabs -->
+        <div class="sport-tabs">
+            <button class="sport-tab active" data-sport="basketball">🏀 Basketball</button>
+            <button class="sport-tab" data-sport="football">⚽ Football</button>
         </div>
 
-        <div id="loading">
-            <div class="spinner"></div>
-            <p>Searching for games...</p>
-        </div>
+        <div class="content-card">
+            <!-- Basketball Tab Content -->
+            <div id="basketball-content" class="tab-content active">
+                <div class="mcp-tabs">
+                    <button class="mcp-tab active" data-mcp="odds-api">The Odds API</button>
+                    <button class="mcp-tab" data-mcp="basketball-api">API-Basketball (International)</button>
+                </div>
 
-        <div id="results"></div>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="basketball-league">League</label>
+                        <select id="basketball-league">
+                            <option value="">Loading leagues...</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="basketball-date">Date</label>
+                        <input type="date" id="basketball-date">
+                    </div>
+                    <button id="loadGamesBtn">Load Games</button>
+                </div>
+            </div>
+
+            <!-- Football Tab Content -->
+            <div id="football-content" class="tab-content">
+                <div class="mcp-tabs">
+                    <button class="mcp-tab active" data-mcp="odds-api">The Odds API</button>
+                    <button class="mcp-tab" data-mcp="football-api">API-Football (International)</button>
+                </div>
+
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="football-league">League</label>
+                        <select id="football-league">
+                            <option value="">Loading leagues...</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="football-date">Date</label>
+                        <input type="date" id="football-date">
+                    </div>
+                    <button id="loadGamesBtn-football">Load Games</button>
+                </div>
+            </div>
+
+            <div id="loading">
+                <div class="spinner"></div>
+                <p>Loading games...</p>
+            </div>
+
+            <div id="results"></div>
+        </div>
     </div>
 
     <script>
         const API_URL = 'http://localhost:3000';
-        const queryInput = document.getElementById('queryInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const loading = document.getElementById('loading');
-        const results = document.getElementById('results');
 
-        // Handle search
-        async function search() {
-            const query = queryInput.value.trim();
-            if (!query) return;
+        // State
+        let currentSport = 'basketball';
+        let currentMCP = 'odds-api';
+        let leagues = {
+            basketball: [],
+            football: []
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeDatePickers();
+            setupEventListeners();
+            loadLeagues();
+        });
+
+        function initializeDatePickers() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('basketball-date').value = today;
+            document.getElementById('football-date').value = today;
+        }
+
+        function setupEventListeners() {
+            // Sport tabs
+            document.querySelectorAll('.sport-tab').forEach(tab => {
+                tab.addEventListener('click', () => switchSport(tab.dataset.sport));
+            });
+
+            // MCP tabs
+            document.querySelectorAll('.mcp-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const sport = this.closest('.tab-content').id.replace('-content', '');
+                    switchMCP(this.dataset.mcp, sport);
+                });
+            });
+
+            // Load games buttons
+            document.getElementById('loadGamesBtn').addEventListener('click', loadGames);
+            document.getElementById('loadGamesBtn-football').addEventListener('click', loadGames);
+        }
+
+        function switchSport(sport) {
+            currentSport = sport;
+
+            // Update sport tabs
+            document.querySelectorAll('.sport-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.sport === sport);
+            });
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === `${sport}-content`);
+            });
+
+            // Clear results
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('results').innerHTML = '';
+        }
+
+        function switchMCP(mcp, sport) {
+            currentMCP = mcp;
+
+            // Update MCP tabs for this sport
+            const content = document.getElementById(`${sport}-content`);
+            content.querySelectorAll('.mcp-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.mcp === mcp);
+            });
+
+            // Reload leagues for this MCP
+            loadLeagues();
+
+            // Clear results
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function loadLeagues() {
+            try {
+                const response = await fetch(`${API_URL}/api/leagues?sport=${currentSport}&mcp=${currentMCP}`);
+                const data = await response.json();
+
+                const leagueSelect = document.getElementById(`${currentSport}-league`);
+                leagueSelect.innerHTML = '<option value="">Select a league...</option>';
+
+                data.leagues.forEach(league => {
+                    const option = document.createElement('option');
+                    option.value = league.key;
+                    option.textContent = league.title;
+                    leagueSelect.appendChild(option);
+                });
+
+                leagues[currentSport] = data.leagues;
+            } catch (error) {
+                console.error('Failed to load leagues:', error);
+                const leagueSelect = document.getElementById(`${currentSport}-league`);
+                leagueSelect.innerHTML = '<option value="">Failed to load leagues</option>';
+            }
+        }
+
+        async function loadGames() {
+            const leagueSelect = document.getElementById(`${currentSport}-league`);
+            const dateInput = document.getElementById(`${currentSport}-date`);
+
+            const league = leagueSelect.value;
+            const date = dateInput.value;
+
+            if (!league) {
+                alert('Please select a league');
+                return;
+            }
+
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
 
             // Show loading
-            loading.style.display = 'block';
-            results.style.display = 'none';
-            searchBtn.disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
 
             try {
-                const response = await fetch(`${API_URL}/api/query`, {
+                const response = await fetch(`${API_URL}/api/games`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query })
+                    body: JSON.stringify({
+                        sport: currentSport,
+                        mcp: currentMCP,
+                        league: league,
+                        date: date
+                    })
                 });
 
                 const data = await response.json();
 
                 if (!response.ok) {
-                    throw new Error(data.error || 'Failed to fetch results');
+                    throw new Error(data.error || 'Failed to fetch games');
                 }
 
                 displayResults(data);
             } catch (error) {
                 displayError(error.message);
             } finally {
-                loading.style.display = 'none';
-                searchBtn.disabled = false;
+                document.getElementById('loading').style.display = 'none';
             }
         }
 
         function displayResults(data) {
-            const { intent, results: games, executionTimeMs } = data;
+            const { games, mcp, executionTimeMs } = data;
 
             let html = `
-                <div class="intent-info">
-                    <span class="intent-badge">${intent.sport || 'Unknown'}</span>
-                    <span class="intent-badge">${intent.queryType}</span>
-                    <span class="intent-badge">Confidence: ${(intent.confidence * 100).toFixed(0)}%</span>
-                    <span style="float: right; color: #999; font-size: 14px;">⚡ ${executionTimeMs}ms</span>
+                <div class="results-header">
+                    <div class="results-count">${games.length} games found</div>
+                    <div>
+                        <span class="data-source-badge">${mcp === 'odds-api' ? '📊 The Odds API' : '🏀 API-Basketball'}</span>
+                        <span style="margin-left: 15px; color: #999; font-size: 14px;">⚡ ${executionTimeMs}ms</span>
+                    </div>
                 </div>
             `;
 
             if (games.length === 0) {
-                html += '<div class="error-message">No games found for your query.</div>';
+                html += '<div class="error-message">No games found for the selected date and league.</div>';
             } else {
                 games.forEach(game => {
                     const date = new Date(game.commenceTime).toLocaleString();
                     html += `
-                        <div class="game-card">
+                        <div class="game-card" onclick="showGameDetails('${game.eventId}')">
                             <div class="game-header">
                                 <div class="teams">
                                     ${game.homeTeam} <span class="vs">vs</span> ${game.awayTeam}
                                 </div>
-                                <div class="game-info">
-                                    <div>${game.sportTitle}</div>
-                                    <div>${date}</div>
-                                </div>
+                                <div class="game-time">${date}</div>
                             </div>
+                            <div class="game-details">
+                                <div class="game-detail-item">
+                                    <span>🏆</span>
+                                    <span>${game.sportTitle || currentSport}</span>
+                                </div>
+                                ${game.status ? `
+                                    <div class="game-detail-item">
+                                        <span>📊</span>
+                                        <span>${game.status}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('results').innerHTML = html;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function displayError(message) {
+            document.getElementById('results').innerHTML = `<div class="error-message">❌ ${message}</div>`;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function showGameDetails(eventId) {
+            // Get current selections
+            const sport = currentSport;
+            const mcp = currentMCP;
+            const leagueSelect = document.getElementById(`${sport}-league`);
+            const league = leagueSelect.value;
+
+            // Fetch game details
+            fetch(`${API_URL}/api/game-details/${eventId}?sport=${sport}&league=${league}&mcp=${mcp}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayGameDetailsModal(data);
+                })
+                .catch(error => {
+                    console.error('Failed to fetch game details:', error);
+                    alert('Failed to load game details: ' + error.message);
+                });
+        }
+
+        function displayGameDetailsModal(game) {
+            // Create modal HTML
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = 'background: white; border-radius: 12px; padding: 30px; max-width: 800px; max-height: 80vh; overflow-y: auto; position: relative;';
+
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '✕';
+            closeBtn.style.cssText = 'position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: #999;';
+            closeBtn.onclick = () => document.body.removeChild(modal);
+
+            const date = new Date(game.commenceTime).toLocaleString();
+
+            let html = `
+                <h2 style="margin-bottom: 20px; color: #333;">${game.homeTeam} vs ${game.awayTeam}</h2>
+                <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0;">
+                    <p style="color: #666; margin: 5px 0;"><strong>Sport:</strong> ${game.sportTitle}</p>
+                    <p style="color: #666; margin: 5px 0;"><strong>Date:</strong> ${date}</p>
+                    <p style="color: #666; margin: 5px 0;"><strong>Status:</strong> ${game.status}</p>
+                    <p style="color: #666; margin: 5px 0;"><strong>Event ID:</strong> ${game.eventId}</p>
+                </div>
+            `;
+
+            // Display bookmakers and odds
+            if (game.bookmakers && game.bookmakers.length > 0) {
+                html += '<h3 style="margin: 20px 0 15px 0; color: #333;">Betting Odds</h3>';
+
+                game.bookmakers.forEach(bookmaker => {
+                    html += `
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <h4 style="margin: 0 0 10px 0; color: #667eea;">${bookmaker.title}</h4>
                     `;
 
-                    if (game.odds && game.odds.bookmakers) {
-                        html += '<div class="odds-grid">';
-                        game.odds.bookmakers.forEach(bookmaker => {
-                            const h2hMarket = bookmaker.markets.find(m => m.marketType === 'h2h');
-                            if (h2hMarket && h2hMarket.outcomes) {
-                                html += `
-                                    <div class="bookmaker-odds">
-                                        <div class="bookmaker-name">${bookmaker.title}</div>
-                                `;
-                                h2hMarket.outcomes.forEach(outcome => {
-                                    html += `<div>${outcome.name}: <span class="odds-value">${outcome.price}</span></div>`;
+                    if (bookmaker.markets && bookmaker.markets.length > 0) {
+                        bookmaker.markets.forEach(market => {
+                            const marketName = market.key === 'h2h' ? 'Moneyline' :
+                                             market.key === 'spreads' ? 'Spread' :
+                                             market.key === 'totals' ? 'Totals (Over/Under)' : market.key;
+
+                            html += `<div style="margin-bottom: 10px;">
+                                <strong style="color: #555;">${marketName}:</strong>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 5px;">`;
+
+                            if (market.outcomes && market.outcomes.length > 0) {
+                                market.outcomes.forEach(outcome => {
+                                    const point = outcome.point ? ` (${outcome.point > 0 ? '+' : ''}${outcome.point})` : '';
+                                    html += `
+                                        <div style="background: white; padding: 8px; border-radius: 4px; text-align: center;">
+                                            <div style="font-weight: 600; color: #333;">${outcome.name}</div>
+                                            <div style="font-size: 1.2em; color: #667eea; font-weight: 700;">${outcome.price}${point}</div>
+                                        </div>
+                                    `;
                                 });
-                                html += '</div>';
                             }
+
+                            html += `</div></div>`;
                         });
-                        html += '</div>';
                     }
 
                     html += '</div>';
                 });
+            } else {
+                html += '<p style="color: #666; font-style: italic;">No betting odds available for this game.</p>';
             }
 
-            results.innerHTML = html;
-            results.style.display = 'block';
-        }
+            modalContent.innerHTML = html;
+            modalContent.appendChild(closeBtn);
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
 
-        function displayError(message) {
-            results.innerHTML = `<div class="error-message">❌ ${message}</div>`;
-            results.style.display = 'block';
-        }
-
-        // Event listeners
-        searchBtn.addEventListener('click', search);
-        queryInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') search();
-        });
-
-        document.querySelectorAll('.example-query').forEach(el => {
-            el.addEventListener('click', () => {
-                queryInput.value = el.dataset.query;
-                search();
+            // Close on background click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
             });
-        });
+        }
     </script>
 </body>
 </html>

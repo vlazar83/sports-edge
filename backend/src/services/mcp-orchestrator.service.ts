@@ -118,7 +118,7 @@ export class MCPOrchestratorService {
       await oddsStorageService.storeNormalizedData(response, toolName);
 
       // 5. Filter results based on intent
-      let filteredResults = this.filterResults(response, intent);
+      let filteredResults = this.filterResults(response, intent, originalQuery);
 
       // 6. Fallback: if "today" returned 0 results for sport_overview, show upcoming games
       if (intent.queryType === 'sport_overview' &&
@@ -129,7 +129,7 @@ export class MCPOrchestratorService {
         console.log('📅 No games today, showing upcoming games instead...');
         // Remove date filter and show upcoming games
         const intentWithoutDate = { ...intent, dateRange: undefined };
-        filteredResults = this.filterResults(response, intentWithoutDate);
+        filteredResults = this.filterResults(response, intentWithoutDate, originalQuery);
       }
 
       // 7. Save query history
@@ -164,7 +164,7 @@ export class MCPOrchestratorService {
   /**
    * Filter MCP response based on parsed intent
    */
-  private filterResults(response: any, intent: ParsedIntent): any {
+  private filterResults(response: any, intent: ParsedIntent, originalQuery?: string): any {
     const games = response.games || (Array.isArray(response) ? response : [response]);
 
     if (!Array.isArray(games)) {
@@ -173,8 +173,17 @@ export class MCPOrchestratorService {
 
     let filtered = games;
 
-    // Filter by teams if specified
-    if (intent.teams && intent.teams.length > 0) {
+    // Check if teams look like international basketball countries
+    const internationalCountries = [
+      'usa', 'hungary', 'france', 'spain', 'canada', 'argentina', 'brazil',
+      'china', 'japan', 'australia', 'germany', 'italy', 'greece', 'serbia'
+    ];
+    const hasInternationalTeams = intent.teams?.some(team =>
+      internationalCountries.includes(team.toLowerCase())
+    );
+
+    // Filter by teams if specified (but skip filtering if international teams and no matches)
+    if (intent.teams && intent.teams.length > 0 && !hasInternationalTeams) {
       filtered = filtered.filter((game: any) => {
         const homeMatch = intent.teams.some(t =>
           game.home_team.toLowerCase().includes(t.toLowerCase())
@@ -194,7 +203,96 @@ export class MCPOrchestratorService {
       });
     }
 
+    // Add relevance scoring if we have a query and teams
+    if (originalQuery && (intent.teams?.length > 0 || filtered.length > 1)) {
+      filtered = this.rankByRelevance(filtered, originalQuery, intent);
+    }
+
     return { ...response, games: filtered };
+  }
+
+  /**
+   * Rank games by relevance to search query
+   */
+  private rankByRelevance(games: any[], query: string, intent: ParsedIntent): any[] {
+    const queryLower = query.toLowerCase();
+
+    // Extract search terms (exclude common words)
+    const searchTerms = queryLower
+      .split(/[\s\-,]+/)
+      .filter(term =>
+        term.length > 2 &&
+        !['today', 'tomorrow', 'yesterday', 'basketball', 'nba', 'game', 'match',
+          'vs', 'versus', 'show', 'the', 'and', 'for'].includes(term)
+      );
+
+    console.log(`🔍 Ranking games by search terms: ${searchTerms.join(', ')}`);
+
+    // Score each game
+    const scoredGames = games.map((game: any) => {
+      const homeTeam = (game.home_team || '').toLowerCase();
+      const awayTeam = (game.away_team || '').toLowerCase();
+      let relevanceScore = 0;
+
+      searchTerms.forEach(term => {
+        // Exact team name match (highest priority)
+        if (homeTeam === term || awayTeam === term) {
+          relevanceScore += 100;
+        }
+        // Team name contains search term
+        else if (homeTeam.includes(term) || awayTeam.includes(term)) {
+          relevanceScore += 50;
+        }
+        // Search term contains team name (partial match)
+        else if (term.includes(homeTeam) || term.includes(awayTeam)) {
+          relevanceScore += 20;
+        }
+
+        // Bonus: Both teams match search terms
+        const homeHasMatch = homeTeam.includes(term) || homeTeam === term;
+        const awayHasMatch = awayTeam.includes(term) || awayTeam === term;
+        if (homeHasMatch && awayHasMatch) {
+          relevanceScore += 30;
+        }
+      });
+
+      // Bonus for country codes in international basketball
+      if (intent.sport === 'basketball') {
+        searchTerms.forEach(term => {
+          // Check for country name matches (USA, Hungary, etc.)
+          const countryPatterns = ['usa', 'hungary', 'france', 'spain', 'canada',
+                                   'argentina', 'brazil', 'china', 'japan'];
+          if (countryPatterns.includes(term)) {
+            if (homeTeam.includes(term) || awayTeam.includes(term)) {
+              relevanceScore += 75; // High boost for country matches
+            }
+          }
+        });
+      }
+
+      return { ...game, relevanceScore };
+    });
+
+    // Sort by relevance score (highest first), then by commence time
+    scoredGames.sort((a, b) => {
+      if (b.relevanceScore !== a.relevanceScore) {
+        return b.relevanceScore - a.relevanceScore;
+      }
+      // Fallback to time sorting
+      const timeA = new Date(a.commence_time || 0).getTime();
+      const timeB = new Date(b.commence_time || 0).getTime();
+      return timeA - timeB;
+    });
+
+    // Log top results for debugging
+    if (scoredGames.length > 0) {
+      console.log(`✓ Top match: ${scoredGames[0].home_team} vs ${scoredGames[0].away_team} (score: ${scoredGames[0].relevanceScore})`);
+      if (scoredGames.length > 1) {
+        console.log(`  2nd: ${scoredGames[1].home_team} vs ${scoredGames[1].away_team} (score: ${scoredGames[1].relevanceScore})`);
+      }
+    }
+
+    return scoredGames;
   }
 
   /**

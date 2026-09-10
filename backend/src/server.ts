@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import path from 'path';
 import queryRoutes from './routes/query.routes';
 import gamesRoutes from './routes/games.routes';
+import leaguesRoutes from './routes/leagues.routes';
+import gameDetailsRoutes from './routes/game-details.routes';
 import db from './config/database';
 
 // Load environment variables
@@ -30,6 +32,8 @@ app.use((req, res, next) => {
 // API Routes
 app.use('/api/query', queryRoutes);
 app.use('/api/games', gamesRoutes);
+app.use('/api/leagues', leaguesRoutes);
+app.use('/api/game-details', gameDetailsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -76,7 +80,8 @@ async function start() {
       console.log(`   http://localhost:${PORT}`);
       console.log(`\n📍 Endpoints:`);
       console.log(`   POST http://localhost:${PORT}/api/query`);
-      console.log(`   GET  http://localhost:${PORT}/api/games`);
+      console.log(`   POST http://localhost:${PORT}/api/games`);
+      console.log(`   GET  http://localhost:${PORT}/api/leagues`);
       console.log(`   GET  http://localhost:${PORT}/health\n`);
     });
   } catch (error) {

@@ -90,19 +90,47 @@ export class QueryParserService {
       return entities;
     }
 
-    // Pattern 2: Query database for known participants
-    if (sport) {
+    // Pattern 2: International basketball country names (case-insensitive)
+    if (sport === 'basketball') {
+      const countryNames = [
+        'usa', 'hungary', 'france', 'spain', 'canada', 'argentina', 'brazil',
+        'china', 'japan', 'australia', 'germany', 'italy', 'greece', 'serbia',
+        'turkey', 'lithuania', 'slovenia', 'croatia', 'russia', 'mexico',
+        'puerto rico', 'dominican republic', 'venezuela', 'philippines'
+      ];
+
+      const queryLower = query.toLowerCase();
+      const words = queryLower.split(/\s+/);
+
+      words.forEach(word => {
+        if (countryNames.includes(word)) {
+          entities.push(word);
+        }
+      });
+
+      // Check for multi-word countries
+      countryNames.forEach(country => {
+        if (country.includes(' ') && queryLower.includes(country)) {
+          entities.push(country);
+        }
+      });
+    }
+
+    // Pattern 3: Query database for known participants
+    if (sport && entities.length === 0) {
       const words = query.toLowerCase().split(/\s+/);
       const participants = await this.findParticipants(sport, words);
       entities.push(...participants);
     }
 
-    // Pattern 3: Capitalized words (likely team/player names)
-    const capitalizedPattern = /\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g;
-    const capitalizedMatches = query.match(capitalizedPattern);
+    // Pattern 4: Capitalized words (likely team/player names)
+    if (entities.length === 0) {
+      const capitalizedPattern = /\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g;
+      const capitalizedMatches = query.match(capitalizedPattern);
 
-    if (capitalizedMatches) {
-      entities.push(...capitalizedMatches);
+      if (capitalizedMatches) {
+        entities.push(...capitalizedMatches);
+      }
     }
 
     return [...new Set(entities)];
